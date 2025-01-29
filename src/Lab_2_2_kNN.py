@@ -249,24 +249,34 @@ def evaluate_classification_metrics(y_true, y_pred, positive_label):
     # Map string labels to 0 or 1
     y_true_mapped = np.array([1 if label == positive_label else 0 for label in y_true])
     y_pred_mapped = np.array([1 if label == positive_label else 0 for label in y_pred])
+    tp,fp,tn,fn = 0,0,0,0
+    for true_label, pred_label in zip(y_true_mapped, y_pred_mapped):
+        if true_label == 1 and pred_label == 1:
+            tp += 1
+        elif true_label == 1 and pred_label == 0:
+            fn += 1
+        elif true_label == 0 and pred_label == 1:
+            fp += 1
+        elif true_label == 0 and pred_label == 0:
+            tn += 1
 
     # Confusion Matrix
-    # TODO
-
+    conf_matrix = np.array([[tp, fn],[fp, tn]])
+    
     # Accuracy
-    # TODO
+    accuracy = (tp+tn)/(tp+tn+fp+fn)
 
     # Precision
-    # TODO
+    precision = tp/(tp+fp)
 
     # Recall (Sensitivity)
-    # TODO
+    recall = tp/(tp+fn)
 
     # Specificity
-    # TODO
+    specificity = tn/(tn+fp)
 
     # F1 Score
-    # TODO
+    f1 = 2*precision*recall/(precision+recall)
 
     return {
         "Confusion Matrix": [tn, fp, fn, tp],
@@ -302,7 +312,7 @@ def plot_calibration_curve(y_true, y_probs, positive_label, n_bins=10):
             - "true_proportions": Array of the fraction of positives in each bin
 
     """
-    # TODO
+    
     return {"bin_centers": bin_centers, "true_proportions": true_proportions}
 
 
