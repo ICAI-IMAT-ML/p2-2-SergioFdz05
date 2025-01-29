@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 sns.set_theme()
 import numpy as np  
 import seaborn as sns
-
+from sklearn.neighbors import KNeighborsClassifier
 
 def minkowski_distance(a, b, p=2):
     """
@@ -18,8 +18,9 @@ def minkowski_distance(a, b, p=2):
     Returns:
         float: Minkowski distance between arrays a and b.
     """
+    distance = np.sum(np.abs(a - b)**p)**(1 / p)
+    return distance
 
-    # TODO
 
 
 # k-Nearest Neighbors Model
@@ -50,8 +51,17 @@ class knn:
             k (int, optional): Number of neighbors to use. Defaults to 5.
             p (int, optional): The degree of the Minkowski distance. Defaults to 2.
         """
-        # TODO
-
+        if not X_train.shape[0] == y_train.shape[0]:
+            raise ValueError
+        if not isinstance(p, int) or p <= 0:
+            raise ValueError("p no es un número entero > 0")
+        if not isinstance(k, int) or k <= 0:
+            raise ValueError("K no es un número entero > 0")
+        self.k = k
+        self.p = p
+        self.x_train = X_train
+        self.y_train = y_train
+        
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predict the class labels for the provided data.
@@ -62,8 +72,15 @@ class knn:
         Returns:
             np.ndarray: Predicted class labels.
         """
-        # TODO
-
+        prediction = []
+        for point in X:
+            distances = self.compute_distances(point)
+            KNN_id = self.get_k_nearest_neighbors(distances)
+            labels = self.y_train[KNN_id]
+            label = self.most_common_label(labels)
+            prediction.append(label)
+        return np.array(prediction)
+    
     def predict_proba(self, X):
         """
         Predict the class probabilities for the provided data.
@@ -77,7 +94,18 @@ class knn:
         Returns:
             np.ndarray: Predicted class probabilities.
         """
-        # TODO
+        probabilities = []
+        for point in X:
+            distances = self.compute_distances(point)
+            KNN_id = self.get_k_nearest_neighbors(distances)
+            labels = self.y_train[KNN_id]
+            count_zeros = np.count_nonzero(labels == 0)
+            count_ones = np.count_nonzero(labels == 1)            
+            prob_zeros = count_zeros/self.k
+            prob_ones = count_ones/self.k            
+            probabilities.append([prob_zeros, prob_ones])
+        
+        return np.array(probabilities)
 
     def compute_distances(self, point: np.ndarray) -> np.ndarray:
         """Compute distance from a point to every point in the training dataset
@@ -88,7 +116,9 @@ class knn:
         Returns:
             np.ndarray: distance from point to each point in the training dataset.
         """
-        # TODO
+        distances = np.array([minkowski_distance(point, train_point, self.p) for train_point in self.x_train])
+        return distances
+            
 
     def get_k_nearest_neighbors(self, distances: np.ndarray) -> np.ndarray:
         """Get the k nearest neighbors indices given the distances matrix from a point.
@@ -102,7 +132,8 @@ class knn:
         Hint:
             You might want to check the np.argsort function.
         """
-        # TODO
+        KNN_id = np.argsort(distances)[:self.k]
+        return KNN_id
 
     def most_common_label(self, knn_labels: np.ndarray) -> int:
         """Obtain the most common label from the labels of the k nearest neighbors
@@ -113,7 +144,9 @@ class knn:
         Returns:
             int: most common label
         """
-        # TODO
+        zeros, ones = np.count_nonzero(knn_labels == 0), np.count_nonzero(knn_labels == 1)
+        if zeros == ones: return np.random.choice([0, 1])
+        return 0 if zeros > ones else 1
 
     def __str__(self):
         """
