@@ -52,11 +52,11 @@ class knn:
             p (int, optional): The degree of the Minkowski distance. Defaults to 2.
         """
         if not X_train.shape[0] == y_train.shape[0]:
-            raise ValueError
+            raise ValueError("Length of X_train and y_train must be equal.")
         if not isinstance(p, int) or p <= 0:
-            raise ValueError("p no es un número entero > 0")
+            raise ValueError("k and p must be positive integers.")
         if not isinstance(k, int) or k <= 0:
-            raise ValueError("K no es un número entero > 0")
+            raise ValueError("k and p must be positive integers.")
         self.k = k
         self.p = p
         self.x_train = X_train
@@ -264,19 +264,20 @@ def evaluate_classification_metrics(y_true, y_pred, positive_label):
     conf_matrix = np.array([[tp, fn],[fp, tn]])
     
     # Accuracy
-    accuracy = (tp+tn)/(tp+tn+fp+fn)
+    total = tp+tn+fp+fn
+    accuracy = (tp+tn)/total if total > 0 else 0
 
     # Precision
-    precision = tp/(tp+fp)
+    precision = tp/(tp+fp) if (tp+fp) > 0 else 0
 
     # Recall (Sensitivity)
-    recall = tp/(tp+fn)
+    recall = tp/(tp+fn) if (tp+fn) > 0 else 0
 
     # Specificity
-    specificity = tn/(tn+fp)
+    specificity = tn/(tn+fp) if (tn+fp) > 0 else 0
 
     # F1 Score
-    f1 = 2*precision*recall/(precision+recall)
+    f1 = (2*precision*recall)/(precision+recall) if (precision+recall) > 0 else 0
 
     return {
         "Confusion Matrix": [tn, fp, fn, tp],
