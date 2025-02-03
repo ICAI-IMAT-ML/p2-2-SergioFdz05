@@ -313,7 +313,31 @@ def plot_calibration_curve(y_true, y_probs, positive_label, n_bins=10):
             - "true_proportions": Array of the fraction of positives in each bin
 
     """
+    true_proportions = [] 
+
+    y_true_mapped = y_true
+    y_true_mapped[y_true_mapped == positive_label] = 1
+    y_true_mapped[y_true_mapped != 1] = 0
+
+    bins_edge = np.linspace(0, 1, n_bins+1)
+    bin_centers = (bins_edge[:-1] + bins_edge[1:])/2
     
+    for i in range(n_bins):
+        in_bin = (y_probs >= bins_edge[i]) & (y_probs < bins_edge[i + 1])
+
+        if np.sum(in_bin) > 0:
+            true_proportions.append(np.mean(y_true_mapped[in_bin]))
+        else:
+            true_proportions.append(0)
+
+    true_proportions = np.array(true_proportions)
+
+    plt.plot(bin_centers, true_proportions, color="blue", label="Calibración del modelo")
+    plt.plot([0, 1], [0, 1], color='green', label="Calibración perfecta")
+    plt.xlabel("Probabilidad media predecida")
+    plt.ylabel("Fracción de positivos")
+    plt.show()
+
     return {"bin_centers": bin_centers, "true_proportions": true_proportions}
 
 
@@ -343,7 +367,18 @@ def plot_probability_histograms(y_true, y_probs, positive_label, n_bins=10):
                 Array of predicted probabilities for the negative class.
 
     """
-    # TODO
+    y_true_mapped = y_true
+    y_true_mapped[y_true_mapped == positive_label] = 1
+    y_true_mapped[y_true_mapped != 1] = 0
+
+    pos_probs = y_probs[y_true_mapped == 1]
+    neg_probs = y_probs[y_true_mapped == 0]
+
+    plt.hist(pos_probs, bins = n_bins, label="positive", color="green", )
+    plt.hist(neg_probs, bins = n_bins, label="negative", color="red", )
+    plt.xlabel("Probabilidad predecida")
+    plt.ylabel("Frecuencia")
+    plt.show()
 
     return {
         "array_passed_to_histogram_of_positive_class": y_probs[y_true_mapped == 1],
@@ -373,5 +408,32 @@ def plot_roc_curve(y_true, y_probs, positive_label):
             - "tpr": Array of True Positive Rates for each threshold.
 
     """
-    # TODO
+    tpr = []
+    fpr = []
+    thresholds = np.linspace(0, 1, 11)
+    for thresh in thresholds:
+        tp = 0
+        tn = 0
+        fp = 0
+        fn = 0
+        for real,prob in zip(y_true,y_probs):
+            pred = 1 if prob >= thresh else 0
+            if real == positive_label and pred == 1:
+                tp += 1
+            elif real == positive_label and pred == 0:
+                fn += 1  
+            elif real != positive_label and pred == 1:
+                fp += 1
+            elif real != positive_label and pred == 0:
+                tn += 1  
+        tpr.append(tp/(tp+fn) if tp+fn != 0 else 0)
+        fpr.append(fp/(fp+tn) if fp+tn != 0 else 0)
+
+    plt.plot(fpr, tpr, label = "ROC CURVE")
+    plt.plot([0, 1], [0, 1], color="red", label="Random")
+    plt.xlabel("FPR")
+    plt.ylabel("TPR")
+    plt.show()
+    
     return {"fpr": np.array(fpr), "tpr": np.array(tpr)}
+
