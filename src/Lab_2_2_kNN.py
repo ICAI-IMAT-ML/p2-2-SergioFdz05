@@ -1,4 +1,4 @@
-# Laboratory practice 2.2: KNN classification
+# Laboratory practice 2.2: KNN classification -Todo terminado
 import seaborn as sns
 import matplotlib.pyplot as plt
 sns.set_theme()
